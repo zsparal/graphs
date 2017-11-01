@@ -1,246 +1,169 @@
-import { IndexGenerator, SequentialIndexGenerator } from "index-generator";
+import { Map, OrderedMap, OrderedSet, Record, Set, List } from "immutable";
 
-export type GraphType = "directed" | "undirected";
-export type GraphEdgeType = "multi" | "simple";
-export type EdgeDirection = "incoming" | "outgoing";
-export type NeighborVisitor = (neighbor: string) => void;
+import { NodeIndex } from "graph.interface";
+import { Option } from "util/option";
 
-export interface Edge<TE> {
-  data: TE;
-  nodes: { from: string; to: string };
-}
+export class Node<N, E> extends Record<{
+  value: N;
+  incomingEdges: OrderedSet<NodeIndex>;
+  outgoingEdges: OrderedMap<NodeIndex, E>;
+}>({
+  value: undefined!,
+  incomingEdges: OrderedSet(),
+  outgoingEdges: OrderedMap()
+}) {}
 
-export interface Node<TN, TE> {
-  id: string;
-  data: TN;
-  incomingEdges: Set<string>;
-  outgoingEdges: Map<string, Edge<TE>>;
-}
-
-export interface GraphOptions {
-  type: GraphType;
-  edgeType: GraphEdgeType;
-  indexGenerator: IndexGenerator;
-}
-
-const defaultOptions = {
-  type: "directed" as "directed",
-  edgeType: "multi" as "multi"
-};
-
-export class Graph<TN = {}, TE = {}> {
-  private type: GraphType;
-  private edgeType: GraphEdgeType;
-  private indexGenerator: IndexGenerator;
-
-  private nodeList = new Map<string, Node<TN, TE>>();
-
-  constructor(options: Partial<GraphOptions> = defaultOptions) {
-    const actualOptions = { ...defaultOptions, ...options };
-    this.type = actualOptions.type;
-    this.indexGenerator =
-      actualOptions.indexGenerator || new SequentialIndexGenerator();
+export class Graph<N, E> extends Record<{
+  nodes: OrderedMap<NodeIndex, Node<N, E>>;
+}>({
+  nodes: OrderedMap()
+}) {
+  get nodeCount() {
+    return this.nodes.size;
   }
 
-  get isDirected() {
-    return this.type === "directed";
+  get edgeCount() {
+    return this.nodes.reduce((acc, edge) => acc + edge.outgoingEdges.size, 0);
   }
 
-  get nodes(): Map<string, Node<TN, TE>> {
-    return this.nodeList;
+  sources(): Set<NodeIndex> {
+    return this.nodes
+      .filter(node => node.incomingEdges.size === 0)
+      .keySeq()
+      .toSet();
   }
 
-  getNode(id: string): Node<TN, TE> | undefined {
-    return this.nodeList.get(id);
+  sinks(): Set<NodeIndex> {
+    return this.nodes
+      .filter(node => node.outgoingEdges.size === 0)
+      .keySeq()
+      .toSet();
   }
 
-  sources(): string[] {
-    const sources: string[] = [];
-    for (const node of this.nodeList.values()) {
-      if (
-        node.incomingEdges.size === 0 &&
-        (this.type === "directed" || node.outgoingEdges.size === 0)
-      ) {
-        sources.push(node.id);
-      }
+  nodeValue(id: NodeIndex): Option<N> {
+    return Option.from(this.nodes.getIn([id, "value"]));
+  }
+
+  hasNode(id: NodeIndex): boolean {
+    return this.nodes.has(id);
+  }
+
+  addNode(id: NodeIndex, value: N): Graph<N, E> {
+    if (this.hasNode(id)) {
+      throw new Error(`Cannot add duplicate node ${id}`);
     }
-    return sources;
+    return this.setIn(["nodes", id], new Node({ value }));
   }
 
-  sinks(): string[] {
-    const sinks: string[] = [];
-    for (const node of this.nodeList.values()) {
-      if (
-        node.outgoingEdges.size === 0 &&
-        (this.type === "directed" || node.outgoingEdges.size === 0)
-      ) {
-        sinks.push(node.id);
-      }
-    }
-    return sinks;
+  updateNode(id: NodeIndex, value: N): Graph<N, E> {
+    return this.setIn(["nodes", id], new Node({ value }));
   }
 
-  getNodeData(id: string): TN | undefined {
-    const node = this.getNode(id);
-    return node && node.data;
-  }
-
-  hasNode(id: string): boolean {
-    return !!this.nodeList.get(id);
-  }
-
-  addNode(data: TN): string {
-    const id = this.indexGenerator.next();
-    this.nodeList.set(id, {
-      id,
-      data,
-      incomingEdges: new Set(),
-      outgoingEdges: new Map()
-    });
-    return id;
-  }
-
-  updateNode(id: string, data: TN) {
-    const node = this.getNode(id);
+  removeNode(id: NodeIndex): Graph<N, E> {
+    const node = this.nodes.get(id);
     if (!node) {
-      return;
-    }
-    node.data = data;
-  }
-
-  removeNode(id: string) {
-    const node = this.nodeList.get(id);
-    if (node && this.nodeList.delete(id)) {
-      for (const edgeFrom of node.incomingEdges) {
-        this.removeEdge(edgeFrom, id);
-      }
-
-      for (const edgeTo of node.outgoingEdges.keys()) {
-        this.removeEdge(id, edgeTo);
-      }
-    }
-  }
-
-  getEdgeData(from: string, to: string): TE | undefined {
-    const fromNode = this.nodeList.get(from);
-    if (!fromNode) {
-      return undefined;
+      return this;
     }
 
-    const edge = fromNode.outgoingEdges.get(to);
-    return edge && edge.data;
-  }
-
-  hasEdge(from: string, to: string): boolean {
-    const node = this.nodeList.get(from);
-    return node != null && node.outgoingEdges.has(to);
-  }
-
-  addEdge(from: string, to: string, data: TE): boolean {
-    if (this.edgeType === "simple" && this.hasEdge(from, to)) {
-      return false;
-    }
-
-    const fromNode = this.nodeList.get(from);
-    const toNode = this.nodeList.get(to);
-    if (!fromNode || !toNode) {
-      return false;
-    }
-
-    fromNode.outgoingEdges.set(to, { data, nodes: { from, to } });
-    toNode.incomingEdges.add(from);
-    return true;
-  }
-
-  updateEdge(from: string, to: string, data: TE) {
-    const fromNode = this.nodeList.get(from);
-    const toNode = this.nodeList.get(to);
-    if (!fromNode || !toNode) {
-      return;
-    }
-
-    const updatedEdge = fromNode.outgoingEdges.get(to) || {
-      data,
-      nodes: { from, to }
-    };
-    fromNode.outgoingEdges.set(to, updatedEdge);
-    toNode.incomingEdges.add(from);
-  }
-
-  removeEdge(from: string, to: string) {
-    if (this.hasEdge(from, to)) {
-      const fromNode = this.nodeList.get(from)!;
-      const toNode = this.nodeList.get(to)!;
-
-      fromNode.outgoingEdges.delete(to);
-      toNode.incomingEdges.delete(from);
-    }
-  }
-
-  neighbors(id: string): string[] | undefined {
-    const node = this.getNodeData(id);
-    if (!node) {
-      return undefined;
-    }
-
-    const neighbors: string[] = [];
-    this.walkNeighbors(id, neighbor => neighbors.push(neighbor));
-    return neighbors;
-  }
-
-  walkNeighbors(id: string, visitor: NeighborVisitor) {
-    const node = this.getNode(id);
-    if (!node) {
-      return;
-    }
-
-    if (this.type === "undirected") {
-      for (const edge of node.incomingEdges.keys()) {
-        visitor(edge);
-      }
-    }
-
-    for (const edge of node.outgoingEdges.keys()) {
-      visitor(edge);
-    }
-  }
-
-  directedNeighbors(
-    id: string,
-    direction: EdgeDirection
-  ): string[] | undefined {
-    const node = this.getNodeData(id);
-    if (!node) {
-      return undefined;
-    }
-
-    const neighbors: string[] = [];
-    this.walkDirectedNeighbors(id, direction, neighbor =>
-      neighbors.push(neighbor)
+    return this.removeIn(["nodes", id]).update("nodes", nodes =>
+      this.removeRelatedEdges(id, node, nodes)
     );
-    return neighbors;
   }
 
-  walkDirectedNeighbors(
-    id: string,
-    direction: EdgeDirection,
-    visitor: NeighborVisitor
-  ) {
-    const node = this.getNode(id);
+  edgeValue(from: NodeIndex, to: NodeIndex): Option<E> {
+    return Option.from(this.nodes.getIn([from, "outgoingEdges", to]));
+  }
+
+  hasEdge(from: NodeIndex, to: NodeIndex): boolean {
+    return this.nodes.hasIn([from, "outgoingEdges", to]);
+  }
+
+  addEdge(from: NodeIndex, to: NodeIndex, data: E): Graph<N, E> {
+    const fromNode = this.nodes.get(from);
+    const toNode = this.nodes.get(to);
+    if (!fromNode || !toNode) {
+      throw new Error(`Cannot add edge between ${from} and ${to}. One of the edges does not exist`);
+    }
+    if (fromNode.outgoingEdges.has(to)) {
+      throw new Error(`Cannot add duplicate edge between ${from} and ${to}`);
+    }
+
+    return this.setIn(["nodes", from, "outgoingEdges", to], data).updateIn(
+      ["nodes", to, "incomingEdges"],
+      (edges: Set<NodeIndex>) => edges.add(from)
+    );
+  }
+
+  updateEdge(from: NodeIndex, to: NodeIndex, data: E): Graph<N, E> {
+    const fromNode = this.nodes.get(from);
+    const toNode = this.nodes.get(to);
+    if (!fromNode || !toNode) {
+      throw new Error(`Cannot add edge between ${from} and ${to}. One of the edges does not exist`);
+    }
+
+    return this.setIn(["nodes", from, "outgoingEdges", to], data).updateIn(
+      ["nodes", to, "incomingEdges"],
+      (edges: Set<NodeIndex>) => edges.add(from)
+    );
+  }
+
+  removeEdge(from: NodeIndex, to: NodeIndex): Graph<N, E> {
+    if (!this.hasNode(from) || !this.hasNode(to)) {
+      return this;
+    }
+
+    return this.removeIn(["nodes", from, "outgoingEdges", to]).removeIn([
+      "nodes",
+      to,
+      "incomingEdges",
+      from
+    ]);
+  }
+
+  successors(nodeIndex: NodeIndex): List<NodeIndex> {
+    const node = this.nodes.get(nodeIndex);
     if (!node) {
-      return;
+      return List();
+    }
+    return node.outgoingEdges.keySeq().toList();
+  }
+
+  predecessors(nodeIndex: NodeIndex): List<NodeIndex> {
+    const node = this.nodes.get(nodeIndex);
+    if (!node) {
+      return List();
+    }
+    return node.incomingEdges.keySeq().toList();
+  }
+
+  neighbors(nodeIndex: NodeIndex): List<NodeIndex> {
+    const node = this.nodes.get(nodeIndex);
+    if (!node) {
+      return List();
+    }
+    return node.incomingEdges
+      .concat(node.outgoingEdges.keySeq())
+      .toSet()
+      .toList();
+  }
+
+  private removeRelatedEdges(
+    nodeId: NodeIndex,
+    node: Node<N, E>,
+    nodes: Map<NodeIndex, Node<N, E>>
+  ): Map<NodeIndex, Node<N, E>> {
+    for (const incomingNode of node.incomingEdges) {
+      nodes = nodes.updateIn([incomingNode, "outgoingEdges"], (n: Map<NodeIndex, E>) =>
+        n.remove(nodeId)
+      );
     }
 
-    if (this.type === "undirected" || direction === "incoming") {
-      for (const edge of node.incomingEdges.keys()) {
-        visitor(edge);
-      }
+    for (const outgoingNode of node.outgoingEdges.keys()) {
+      nodes = nodes.updateIn([outgoingNode, "incomingEdges"], (n: Set<NodeIndex>) =>
+        n.remove(nodeId)
+      );
     }
 
-    if (this.type === "undirected" || direction === "outgoing") {
-      for (const edge of node.outgoingEdges.keys()) {
-        visitor(edge);
-      }
-    }
+    return nodes;
   }
 }

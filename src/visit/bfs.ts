@@ -1,28 +1,26 @@
 import { Graph } from "graph";
+import { NodeIndex } from "graph.interface";
 import { Visitor } from "visit";
 
-export function bfs<TN, TE>(
-  graph: Graph<TN, TE>,
-  start: string,
-  visitor: Visitor<TN>
-) {
-  if (!graph.hasNode(start)) {
+export function bfs<N, E>(graph: Graph<N, E>, startNode: NodeIndex, visitor: Visitor) {
+  if (!graph.nodes.has(startNode)) {
     return;
   }
 
-  const queue = [start];
   const visited = new Set<string>();
-
+  const queue = [startNode];
   while (queue.length > 0) {
-    const [nodeId] = queue.splice(0, 1);
-    if (visited.has(nodeId)) {
+    const [node] = queue.splice(0, 1);
+    if (visited.has(node)) {
       continue;
     }
-    const node = graph.getNodeData(nodeId)!;
+
+    visited.add(node);
     visitor(node);
-    visited.add(nodeId);
-    graph.walkDirectedNeighbors(nodeId, "outgoing", neighbor => {
-      queue.push(neighbor);
-    });
+    for (const successor of graph.successors(node)) {
+      if (!visited.has(successor)) {
+        queue.push(successor);
+      }
+    }
   }
 }

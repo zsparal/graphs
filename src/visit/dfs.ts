@@ -1,60 +1,51 @@
 import { Graph } from "graph";
+import { NodeIndex } from "graph.interface";
 import { Visitor } from "visit";
 
-export function dfs<TN, TE>(
-  graph: Graph<TN, TE>,
-  start: string,
-  visitor: Visitor<TN>
-) {
-  if (!graph.hasNode(start)) {
+export function dfs<N, E>(graph: Graph<N, E>, startNode: NodeIndex, visitor: Visitor) {
+  if (!graph.nodes.has(startNode)) {
     return;
   }
 
-  const stack = [start];
   const visited = new Set<string>();
-
+  const stack = [startNode];
   while (stack.length > 0) {
-    const nodeId = stack.pop()!;
-    if (visited.has(nodeId)) {
-      continue;
-    }
-    const node = graph.getNodeData(nodeId)!;
+    const node = stack.pop()!;
+    visited.add(node);
+
     visitor(node);
-    visited.add(nodeId);
-    graph.walkDirectedNeighbors(nodeId, "outgoing", neighbor => {
-      stack.push(neighbor);
-    });
+    for (const successor of graph.successors(node)) {
+      if (!visited.has(successor)) {
+        stack.push(successor);
+      }
+    }
   }
 }
 
-export function dfsPostOrder<TN, TE>(
-  graph: Graph<TN, TE>,
-  start: string,
-  visitor: Visitor<TN>
-) {
-  if (!graph.hasNode(start)) {
+export function dfsPostOrder<N, E>(graph: Graph<N, E>, startNode: NodeIndex, visitor: Visitor) {
+  if (!graph.nodes.has(startNode)) {
     return;
   }
 
-  const stack = [start];
+  const stack = [startNode];
   const visited = new Set<string>();
-  const finished: string[] = [];
+  const finished = new Set<string>();
 
   while (stack.length > 0) {
-    const nodeId = stack.pop()!;
-    if (visited.has(nodeId)) {
-      continue;
+    const next = stack[stack.length - 1];
+    if (!visited.has(next)) {
+      visited.add(next);
+      for (const successor of graph.successors(next)) {
+        if (!visited.has(successor)) {
+          stack.push(successor);
+        }
+      }
+    } else {
+      const node = stack.pop()!;
+      if (!finished.has(node)) {
+        finished.add(node);
+        visitor(node);
+      }
     }
-
-    visited.add(nodeId);
-    finished.push(nodeId);
-    graph.walkDirectedNeighbors(nodeId, "outgoing", neighbor => {
-      stack.push(neighbor);
-    });
-  }
-
-  while (finished.length > 0) {
-    const node = finished.pop()!;
-    visitor(graph.getNodeData(node)!);
   }
 }

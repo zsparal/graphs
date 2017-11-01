@@ -1,0 +1,18 @@
+{
+  "extends": ["tslint:latest", "tslint-config-prettier"],
+  "defaultseverity": "warning",
+  "rulesdirectory": ["tslint-plugin-prettier"],
+  "rules": {
+    "align": [false],
+    "no-console": false,
+    "interface-name": [true, "never-prefix"],
+    "member-access": [true, "no-public"],
+    "no-default-export": true,
+    "no-empty-interface": false,
+    "no-var-requires": true,
+    "object-literal-sort-keys": [false],
+    "only-arrow-functions": [true, "allow-declarations"],
+    "prettier": true,
+    "max-classes-per-file": false
+  }
+}
