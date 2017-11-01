@@ -1,11 +1,12 @@
 import { Graph } from "graph";
-import { NodeIndex } from "graph.interface";
+import { Dict, NodeIndex } from "graph.interface";
 import { Option } from "util/option";
 
 export function sortTopological<N, E>(graph: Graph<N, E>): Option<NodeIndex[]> {
-  const inputCounts = new Map(
-    graph.nodes.map<[string, number]>((value, key) => [key, value.incomingEdges.size]).values()
-  );
+  const inputCounts: Dict<number> = {};
+  for (const [id, node] of graph.nodes) {
+    inputCounts[id] = node.incomingEdges.size;
+  }
 
   const sorted: NodeIndex[] = [];
   const ready = [...graph.sources()];
@@ -15,10 +16,9 @@ export function sortTopological<N, E>(graph: Graph<N, E>): Option<NodeIndex[]> {
     sorted.push(node);
 
     for (const successor of graph.successors(node)) {
-      const newCount = inputCounts.get(successor)! - 1;
-      inputCounts.set(successor, newCount);
+      inputCounts[successor] -= 1;
 
-      if (newCount === 0) {
+      if (inputCounts[successor] === 0) {
         ready.push(successor);
       }
     }
