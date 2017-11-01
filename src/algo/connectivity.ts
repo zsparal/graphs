@@ -18,7 +18,7 @@ export function getWeaklyConnectedComponents<N, E>(graph: Graph<N, E>): NodeInde
       continue;
     }
 
-    const component = recordTraversal(undirected(graph), dfs, node);
+    const component = getReachableNodes(graph, node);
     components.push(component);
     for (const c of component) {
       visited.add(c);
