@@ -1,6 +1,5 @@
 import { Graph } from "graph";
 import { Dict, NodeIndex } from "graph.interface";
-import { Option } from "util/option";
 
 export function sortTopological<N, E>(graph: Graph<N, E>): NodeIndex[] | undefined {
   const inputCounts: Dict<number> = {};

@@ -1,7 +1,6 @@
 import { List, OrderedMap, Record } from "immutable";
 
 import { Edge, NodeIndex } from "graph.interface";
-import { Option } from "util/option";
 
 export class Node<N> extends Record<{
   value: N;
