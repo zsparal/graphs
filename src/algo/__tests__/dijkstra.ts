@@ -2,7 +2,7 @@ import { Graph } from "graph";
 
 import { dijkstra } from "algo/dijkstra";
 
-describe("Bellman-Ford", () => {
+describe("Dijkstra", () => {
   let graph: Graph<{}, number>;
   beforeEach(() => {
     graph = Graph.from(

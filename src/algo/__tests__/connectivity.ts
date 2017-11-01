@@ -1,8 +1,8 @@
 import { Graph } from "graph";
 
-import { getReachableNodes } from "algo/connectivity";
+import { getReachableNodes, getWeaklyConnectedComponents } from "algo/connectivity";
 
-describe("Topological sort", () => {
+describe("Connectivity", () => {
   let graph: Graph<number, number>;
   beforeEach(() => {
     graph = Graph.from(
@@ -20,6 +20,12 @@ describe("Topological sort", () => {
   it("returns an isolated node", () => {
     const expected = ["F"];
     const result = getReachableNodes(graph, "F").sort();
+    expect(result).toEqual(expected);
+  });
+
+  it("returns all weakly connected components", () => {
+    const expected = [["A", "B", "C", "D", "E"], ["F"], ["G"]];
+    const result = getWeaklyConnectedComponents(graph).map(c => c.sort());
     expect(result).toEqual(expected);
   });
 });
