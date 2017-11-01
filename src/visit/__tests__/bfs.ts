@@ -3,25 +3,23 @@ import { Graph } from "graph";
 import { recordTraversal } from "visit";
 import { bfs } from "visit/bfs";
 
-const n = ["n0", "n1", "n2", "n3", "n4"];
-
 describe("BFS", () => {
   let graph: Graph<number, number>;
   beforeEach(() => {
     graph = Graph.from(
-      [[n[0], 0], [n[1], 0], [n[2], 0], [n[3], 0], [n[4], 0]],
-      [[n[0], n[1], 0], [n[0], n[2], 0], [n[1], n[2], 0], [n[2], n[3], 0], [n[3], n[4], 0]]
+      [["A", 0], ["B", 0], ["C", 0], ["D", 0], ["E", 0]],
+      [["A", "B", 0], ["A", "C", 0], ["B", "C", 0], ["C", "D", 0], ["D", "E", 0]]
     );
   });
 
   it("returns the correct traversal for acyclic graphs", () => {
-    const expected = [n[0], n[1], n[2], n[3], n[4]];
-    expect(recordTraversal(bfs, graph, n[0])).toEqual(expected);
+    const expected = ["A", "B", "C", "D", "E"];
+    expect(recordTraversal(bfs, graph, "A")).toEqual(expected);
   });
 
   it("returns the correct traversal for cyclic graphs", () => {
-    graph = graph.addEdge(n[4], n[0], 0);
-    const expected = [n[0], n[1], n[2], n[3], n[4]];
-    expect(recordTraversal(bfs, graph, n[0])).toEqual(expected);
+    graph = graph.addEdge("E", "A", 0);
+    const expected = ["A", "B", "C", "D", "E"];
+    expect(recordTraversal(bfs, graph, "A")).toEqual(expected);
   });
 });

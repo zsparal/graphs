@@ -2,24 +2,22 @@ import { Graph } from "graph";
 
 import { sortTopological } from "algo/topological-sort";
 
-const n = ["n0", "n1", "n2", "n3", "n4"];
-
 describe("Topological sort", () => {
   let graph: Graph<number, number>;
   beforeEach(() => {
     graph = Graph.from(
-      [[n[0], 0], [n[1], 0], [n[2], 0], [n[3], 0], [n[4], 0]],
-      [[n[0], n[1], 0], [n[0], n[2], 0], [n[1], n[2], 0], [n[2], n[3], 0], [n[3], n[4], 0]]
+      [["A", 0], ["B", 0], ["C", 0], ["D", 0], ["E", 0]],
+      [["A", "B", 0], ["A", "C", 0], ["B", "C", 0], ["C", "D", 0], ["D", "E", 0]]
     );
   });
 
   it("returns the correct topological order for acyclic graphs", () => {
-    const expected = [n[0], n[1], n[2], n[3], n[4]];
+    const expected = ["A", "B", "C", "D", "E"];
     expect(sortTopological(graph).unwrap()).toEqual(expected);
   });
 
   it("returns None for cyclic graphs", () => {
-    graph = graph.addEdge(n[4], n[0], 0);
+    graph = graph.addEdge("E", "A", 0);
     expect(sortTopological(graph).isNone()).toEqual(true);
   });
 });

@@ -3,36 +3,34 @@ import { Graph } from "graph";
 import { recordTraversal } from "visit";
 import { dfs, dfsPostOrder } from "visit/dfs";
 
-const n = ["n0", "n1", "n2", "n3", "n4"];
-
 describe("DFS", () => {
   let graph: Graph<number, number>;
   beforeEach(() => {
     graph = Graph.from(
-      [[n[0], 0], [n[1], 0], [n[2], 0], [n[3], 0], [n[4], 0]],
-      [[n[0], n[1], 0], [n[0], n[2], 0], [n[1], n[2], 0], [n[2], n[3], 0], [n[3], n[4], 0]]
+      [["A", 0], ["B", 0], ["C", 0], ["D", 0], ["E", 0]],
+      [["A", "B", 0], ["A", "C", 0], ["B", "C", 0], ["C", "D", 0], ["D", "E", 0]]
     );
   });
 
   it("returns the correct preorder traversal for acyclic graphs", () => {
-    const expected = [n[0], n[2], n[3], n[4], n[1]];
-    expect(recordTraversal(dfs, graph, n[0])).toEqual(expected);
+    const expected = ["A", "C", "D", "E", "B"];
+    expect(recordTraversal(dfs, graph, "A")).toEqual(expected);
   });
 
   it("returns the correct preorder traversal for cyclic graphs", () => {
-    graph = graph.addEdge(n[4], n[0], 0);
-    const expected = [n[0], n[2], n[3], n[4], n[1]];
-    expect(recordTraversal(dfs, graph, n[0])).toEqual(expected);
+    graph = graph.addEdge("E", "A", 0);
+    const expected = ["A", "C", "D", "E", "B"];
+    expect(recordTraversal(dfs, graph, "A")).toEqual(expected);
   });
 
   it("returns the correct postorder traversal for acyclic graphs", () => {
-    const expected = [n[4], n[3], n[2], n[1], n[0]];
-    expect(recordTraversal(dfsPostOrder, graph, n[0])).toEqual(expected);
+    const expected = ["E", "D", "C", "B", "A"];
+    expect(recordTraversal(dfsPostOrder, graph, "A")).toEqual(expected);
   });
 
   it("returns the correct postorder traversal for cyclic graphs", () => {
-    graph = graph.addEdge(n[4], n[0], 0);
-    const expected = [n[4], n[3], n[2], n[1], n[0]];
-    expect(recordTraversal(dfsPostOrder, graph, n[0])).toEqual(expected);
+    graph = graph.addEdge("E", "A", 0);
+    const expected = ["E", "D", "C", "B", "A"];
+    expect(recordTraversal(dfsPostOrder, graph, "A")).toEqual(expected);
   });
 });
