@@ -11,18 +11,18 @@ describe("Graph", () => {
 
     it("can add nodes (via addNode)", () => {
       graph = graph.addNode("A", 10);
-      expect(graph.nodeValue("A").unwrap()).toBe(10);
+      expect(graph.nodeValue("A")).toBe(10);
     });
 
     it("can get node data", () => {
       graph = graph.addNode("A", 10);
-      expect(graph.nodeValue("A").unwrap()).toBe(10);
-      expect(graph.nodeValue("B").isNone()).toBe(true);
+      expect(graph.nodeValue("A")).toBe(10);
+      expect(graph.nodeValue("B")).toBeUndefined();
     });
 
     it("can add nodes (via updateNode)", () => {
       graph = graph.updateNode("A", 10);
-      expect(graph.nodeValue("A").unwrap()).toBe(10);
+      expect(graph.nodeValue("A")).toBe(10);
     });
 
     it("throws on duplicate nodes", () => {
@@ -32,7 +32,7 @@ describe("Graph", () => {
 
     it("can update nodes", () => {
       graph = graph.addNode("A", 10).updateNode("A", 20);
-      expect(graph.nodeValue("A").unwrap()).toBe(20);
+      expect(graph.nodeValue("A")).toBe(20);
     });
 
     it("can remove nodes", () => {
@@ -58,18 +58,18 @@ describe("Graph", () => {
 
     it("can add edges (via addEdge)", () => {
       graph = graph.addEdge("A", "B", 10);
-      expect(graph.edgeValue("A", "B").unwrap()).toBe(10);
+      expect(graph.edgeValue("A", "B")).toBe(10);
     });
 
     it("can get edge data", () => {
       graph = graph.addEdge("A", "B", 10);
-      expect(graph.edgeValue("A", "B").unwrap()).toBe(10);
-      expect(graph.edgeValue("B", "C").isNone()).toBe(true);
+      expect(graph.edgeValue("A", "B")).toBe(10);
+      expect(graph.edgeValue("B", "C")).toBeUndefined();
     });
 
     it("can add edges (via updateEdge)", () => {
       graph = graph.updateEdge("A", "B", 10);
-      expect(graph.edgeValue("A", "B").unwrap()).toBe(10);
+      expect(graph.edgeValue("A", "B")).toBe(10);
     });
 
     it("throws on duplicate edges", () => {
@@ -79,7 +79,7 @@ describe("Graph", () => {
 
     it("can update edges", () => {
       graph = graph.addEdge("A", "B", 10).updateEdge("A", "B", 20);
-      expect(graph.edgeValue("A", "B").unwrap()).toBe(20);
+      expect(graph.edgeValue("A", "B")).toBe(20);
     });
 
     it("can remove edges", () => {

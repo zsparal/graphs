@@ -20,6 +20,19 @@ export class Graph<N, E> extends Record<{
   nodes: OrderedMap(),
   edges: OrderedMap()
 }) {
+  static from<N, E>(nodes: Array<[string, N]>, edges?: Array<[string, string, E]>): Graph<N, E> {
+    let graph = new Graph<N, E>();
+    for (const [node, data] of nodes) {
+      graph = graph.addNode(node, data);
+    }
+    if (edges) {
+      for (const [from, to, data] of edges) {
+        graph = graph.addEdge(from, to, data);
+      }
+    }
+    return graph;
+  }
+
   get nodeCount() {
     return this.nodes.size;
   }
@@ -36,8 +49,8 @@ export class Graph<N, E> extends Record<{
     return Array.from(this.nodes.filter(node => node.outgoingEdges.size === 0).keys());
   }
 
-  nodeValue(id: NodeIndex): Option<N> {
-    return Option.from(this.nodes.getIn([id, "value"]));
+  nodeValue(id: NodeIndex): N | undefined {
+    return this.nodes.getIn([id, "value"]);
   }
 
   hasNode(id: NodeIndex): boolean {
@@ -64,8 +77,8 @@ export class Graph<N, E> extends Record<{
     return this.removeIn(["nodes", id]).removeRelatedEdges(id, node);
   }
 
-  edgeValue(from: NodeIndex, to: NodeIndex): Option<E> {
-    return Option.from(this.edges.get(new Edge(from, to)));
+  edgeValue(from: NodeIndex, to: NodeIndex): E | undefined {
+    return this.edges.get(new Edge(from, to));
   }
 
   hasEdge(from: NodeIndex, to: NodeIndex): boolean {
@@ -185,24 +198,5 @@ export class Graph<N, E> extends Record<{
     edge: NodeIndex
   ): OrderedMap<NodeIndex, Node<N>> {
     return nodes.updateIn([node, type], (edges: List<NodeIndex>) => edges.filter(e => e !== edge));
-  }
-}
-
-// tslint:disable-next-line
-export namespace Graph {
-  export function from<N, E>(
-    nodes: Array<[string, N]>,
-    edges?: Array<[string, string, E]>
-  ): Graph<N, E> {
-    let graph = new Graph<N, E>();
-    for (const [node, data] of nodes) {
-      graph = graph.addNode(node, data);
-    }
-    if (edges) {
-      for (const [from, to, data] of edges) {
-        graph = graph.addEdge(from, to, data);
-      }
-    }
-    return graph;
   }
 }

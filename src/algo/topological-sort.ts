@@ -2,7 +2,7 @@ import { Graph } from "graph";
 import { Dict, NodeIndex } from "graph.interface";
 import { Option } from "util/option";
 
-export function sortTopological<N, E>(graph: Graph<N, E>): Option<NodeIndex[]> {
+export function sortTopological<N, E>(graph: Graph<N, E>): NodeIndex[] | undefined {
   const inputCounts: Dict<number> = {};
   for (const [id, node] of graph.nodes) {
     inputCounts[id] = node.incomingEdges.size;
@@ -24,5 +24,5 @@ export function sortTopological<N, E>(graph: Graph<N, E>): Option<NodeIndex[]> {
     }
   }
 
-  return sorted.length === graph.nodeCount ? Option.some(sorted) : Option.none();
+  return sorted.length === graph.nodeCount ? sorted : undefined;
 }

@@ -14,12 +14,12 @@ describe("BFS", () => {
 
   it("returns the correct traversal for acyclic graphs", () => {
     const expected = ["A", "B", "C", "D", "E"];
-    expect(recordTraversal(bfs, graph, "A")).toEqual(expected);
+    expect(recordTraversal(graph, bfs, "A")).toEqual(expected);
   });
 
   it("returns the correct traversal for cyclic graphs", () => {
     graph = graph.addEdge("E", "A", 0);
     const expected = ["A", "B", "C", "D", "E"];
-    expect(recordTraversal(bfs, graph, "A")).toEqual(expected);
+    expect(recordTraversal(graph, bfs, "A")).toEqual(expected);
   });
 });

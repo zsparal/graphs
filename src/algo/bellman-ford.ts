@@ -1,17 +1,13 @@
 import { Graph } from "graph";
 import { Dict, NodeIndex } from "graph.interface";
-import { Option } from "util/option";
 
-export interface BellmanFordResult {
-  predecessor: Dict<string | undefined>;
-  distance: Dict<number>;
-}
+import { ShortestPathResult } from "algo/shortest-path";
 
 export function bellmanFord<N, E>(
   graph: Graph<N, E>,
   start: NodeIndex,
   weightSelector: (edge: E) => number
-): Option<BellmanFordResult> {
+): ShortestPathResult | undefined {
   const predecessor: Dict<string | undefined> = {};
   const distance: Dict<number> = {};
 
@@ -38,9 +34,9 @@ export function bellmanFord<N, E>(
   for (const [{ source, target }, data] of graph.edges) {
     const weight = weightSelector(data);
     if (distance[source] + weight < distance[target]) {
-      return Option.none();
+      return undefined;
     }
   }
 
-  return Option.some({ predecessor, distance });
+  return { predecessor, distance };
 }

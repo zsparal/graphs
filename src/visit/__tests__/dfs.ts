@@ -14,23 +14,23 @@ describe("DFS", () => {
 
   it("returns the correct preorder traversal for acyclic graphs", () => {
     const expected = ["A", "C", "D", "E", "B"];
-    expect(recordTraversal(dfs, graph, "A")).toEqual(expected);
+    expect(recordTraversal(graph, dfs, "A")).toEqual(expected);
   });
 
   it("returns the correct preorder traversal for cyclic graphs", () => {
     graph = graph.addEdge("E", "A", 0);
     const expected = ["A", "C", "D", "E", "B"];
-    expect(recordTraversal(dfs, graph, "A")).toEqual(expected);
+    expect(recordTraversal(graph, dfs, "A")).toEqual(expected);
   });
 
   it("returns the correct postorder traversal for acyclic graphs", () => {
     const expected = ["E", "D", "C", "B", "A"];
-    expect(recordTraversal(dfsPostOrder, graph, "A")).toEqual(expected);
+    expect(recordTraversal(graph, dfsPostOrder, "A")).toEqual(expected);
   });
 
   it("returns the correct postorder traversal for cyclic graphs", () => {
     graph = graph.addEdge("E", "A", 0);
     const expected = ["E", "D", "C", "B", "A"];
-    expect(recordTraversal(dfsPostOrder, graph, "A")).toEqual(expected);
+    expect(recordTraversal(graph, dfsPostOrder, "A")).toEqual(expected);
   });
 });

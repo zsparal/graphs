@@ -1,8 +1,9 @@
 import { Graph } from "graph";
 
 import { bellmanFord } from "algo/bellman-ford";
+import { shortestPathBetween } from "algo/shortest-path";
 
-describe("Bellman-Ford", () => {
+describe("Shortest path", () => {
   let graph: Graph<{}, number>;
   beforeEach(() => {
     graph = Graph.from(
@@ -21,16 +22,14 @@ describe("Bellman-Ford", () => {
   });
 
   it("returns the correct result for graphs without a negative cycle", () => {
-    const expectedDistances = { A: 0, B: -1, C: 2, D: -2, E: 1 };
-    const expectedPredecessors = { A: undefined, B: "A", C: "B", D: "E", E: "B" };
-    const result = bellmanFord(graph, "A", x => x);
-    expect(result!.distance).toEqual(expectedDistances);
-    expect(result!.predecessor).toEqual(expectedPredecessors);
+    const path = shortestPathBetween(graph, bellmanFord, "A", "D", x => x);
+    expect(path).toEqual(["A", "B", "E", "D"]);
   });
 
   it("returns undefined for graphs with a negative cycle", () => {
     graph = graph.updateEdge("D", "C", -1);
     graph = graph.addEdge("C", "A", -2);
-    expect(bellmanFord(graph, "A", x => x)).toBeUndefined();
+    const path = shortestPathBetween(graph, bellmanFord, "A", "E", x => x);
+    expect(path).toBeUndefined();
   });
 });

@@ -13,11 +13,11 @@ describe("Topological sort", () => {
 
   it("returns the correct topological order for acyclic graphs", () => {
     const expected = ["A", "B", "C", "D", "E"];
-    expect(sortTopological(graph).unwrap()).toEqual(expected);
+    expect(sortTopological(graph)).toEqual(expected);
   });
 
   it("returns None for cyclic graphs", () => {
     graph = graph.addEdge("E", "A", 0);
-    expect(sortTopological(graph).isNone()).toEqual(true);
+    expect(sortTopological(graph)).toBeUndefined();
   });
 });
