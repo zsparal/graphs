@@ -1,11 +1,10 @@
-import { Graph } from "graph";
-import { NodeIndex } from "graph.interface";
+import { NodeIndex, Visitable } from "graph.interface";
 
 export type Visitor = (node: NodeIndex) => void;
 
-export function recordTraversal<N, E>(
-  graph: Graph<N, E>,
-  traversal: (graph: Graph<N, E>, startNode: NodeIndex, visitor: Visitor) => void,
+export function recordTraversal(
+  graph: Visitable,
+  traversal: (graph: Visitable, startNode: NodeIndex, visitor: Visitor) => void,
   startNode: NodeIndex
 ): string[] {
   const result: string[] = [];

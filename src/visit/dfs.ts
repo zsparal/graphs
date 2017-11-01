@@ -1,9 +1,8 @@
-import { Graph } from "graph";
-import { NodeIndex } from "graph.interface";
+import { NodeIndex, Visitable } from "graph.interface";
 import { Visitor } from "visit";
 
-export function dfs<N, E>(graph: Graph<N, E>, startNode: NodeIndex, visitor: Visitor) {
-  if (!graph.nodes.has(startNode)) {
+export function dfs(graph: Visitable, startNode: NodeIndex, visitor: Visitor) {
+  if (!graph.hasNode(startNode)) {
     return;
   }
 
@@ -11,19 +10,18 @@ export function dfs<N, E>(graph: Graph<N, E>, startNode: NodeIndex, visitor: Vis
   const stack = [startNode];
   while (stack.length > 0) {
     const node = stack.pop()!;
-    visited.add(node);
-
-    visitor(node);
-    for (const successor of graph.successors(node)) {
-      if (!visited.has(successor)) {
-        stack.push(successor);
-      }
+    if (visited.has(node)) {
+      continue;
     }
+
+    visited.add(node);
+    visitor(node);
+    stack.push(...graph.successors(node));
   }
 }
 
-export function dfsPostOrder<N, E>(graph: Graph<N, E>, startNode: NodeIndex, visitor: Visitor) {
-  if (!graph.nodes.has(startNode)) {
+export function dfsPostOrder(graph: Visitable, startNode: NodeIndex, visitor: Visitor) {
+  if (!graph.hasNode(startNode)) {
     return;
   }
 

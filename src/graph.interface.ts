@@ -1,8 +1,13 @@
-import { hash, ValueObject } from "immutable";
+import { hash, List, ValueObject } from "immutable";
 
 export type NodeIndex = string;
 export interface Dict<T> {
   [key: string]: T;
+}
+
+export interface Visitable {
+  hasNode(node: NodeIndex): boolean;
+  successors(node: NodeIndex): List<NodeIndex>;
 }
 
 export class Edge implements ValueObject {

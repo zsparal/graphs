@@ -1,9 +1,8 @@
-import { Graph } from "graph";
-import { NodeIndex } from "graph.interface";
+import { NodeIndex, Visitable } from "graph.interface";
 import { Visitor } from "visit";
 
-export function bfs<N, E>(graph: Graph<N, E>, startNode: NodeIndex, visitor: Visitor) {
-  if (!graph.nodes.has(startNode)) {
+export function bfs(graph: Visitable, startNode: NodeIndex, visitor: Visitor) {
+  if (!graph.hasNode(startNode)) {
     return;
   }
 
@@ -17,10 +16,6 @@ export function bfs<N, E>(graph: Graph<N, E>, startNode: NodeIndex, visitor: Vis
 
     visited.add(node);
     visitor(node);
-    for (const successor of graph.successors(node)) {
-      if (!visited.has(successor)) {
-        queue.push(successor);
-      }
-    }
+    queue.push(...graph.successors(node));
   }
 }
