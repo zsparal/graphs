@@ -8,17 +8,10 @@ const n = ["n0", "n1", "n2", "n3", "n4"];
 describe("DFS", () => {
   let graph: Graph<number, number>;
   beforeEach(() => {
-    graph = new Graph<number, number>()
-      .addNode(n[0], 0)
-      .addNode(n[1], 0)
-      .addNode(n[2], 0)
-      .addNode(n[3], 0)
-      .addNode(n[4], 0)
-      .addEdge(n[0], n[1], 0)
-      .addEdge(n[0], n[2], 0)
-      .addEdge(n[1], n[2], 0)
-      .addEdge(n[2], n[3], 0)
-      .addEdge(n[3], n[4], 0);
+    graph = Graph.from(
+      [[n[0], 0], [n[1], 0], [n[2], 0], [n[3], 0], [n[4], 0]],
+      [[n[0], n[1], 0], [n[0], n[2], 0], [n[1], n[2], 0], [n[2], n[3], 0], [n[3], n[4], 0]]
+    );
   });
 
   it("returns the correct preorder traversal for acyclic graphs", () => {

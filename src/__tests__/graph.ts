@@ -55,11 +55,7 @@ describe("Graph", () => {
 
   describe("Basic edge operations", () => {
     beforeEach(() => {
-      graph = new Graph<number, number>()
-        .addNode(n[0], 0)
-        .addNode(n[1], 1)
-        .addNode(n[2], 2)
-        .addNode(n[3], 3);
+      graph = Graph.from([[n[0], 0], [n[1], 1], [n[2], 2], [n[3], 3]]);
     });
 
     it("can add edges (via addEdge)", () => {
@@ -106,16 +102,10 @@ describe("Graph", () => {
 
   describe("Neighbor operations", () => {
     beforeEach(() => {
-      graph = new Graph<number, number>()
-        .addNode(n[0], 0)
-        .addNode(n[1], 1)
-        .addNode(n[2], 2)
-        .addNode(n[3], 3)
-        .addEdge(n[0], n[1], 10)
-        .addEdge(n[0], n[2], 20)
-        .addEdge(n[0], n[3], 30)
-        .addEdge(n[1], n[2], 40)
-        .addEdge(n[2], n[3], 60);
+      graph = Graph.from(
+        [[n[0], 0], [n[1], 1], [n[2], 2], [n[3], 3]],
+        [[n[0], n[1], 10], [n[0], n[2], 20], [n[0], n[3], 30], [n[1], n[2], 40], [n[2], n[3], 60]]
+      );
     });
 
     it("can get successors", () => {
