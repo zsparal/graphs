@@ -54,3 +54,49 @@ export function tarjanScc<N, E>(graph: Graph<N, E>): NodeIndex[][] {
     scnt += 1;
   }
 }
+
+export function kosarajuScc<N, E>(graph: Graph<N, E>): NodeIndex[][] {
+  const visited = new Set<NodeIndex>();
+  const L: NodeIndex[] = [];
+  const ids: Dict<NodeIndex> = {};
+
+  for (const node of graph.nodes.keys()) {
+    visit(node);
+  }
+
+  for (const node of graph.nodes.keys()) {
+    assign(node, node);
+  }
+
+  return Object.values(
+    Object.entries(ids).reduce(
+      (components, [node, component]) => {
+        components[component] = components[component] || [];
+        components[component].push(node);
+        return components;
+      },
+      {} as Dict<NodeIndex[]>
+    )
+  );
+
+  function visit(u: NodeIndex) {
+    if (visited.has(u)) {
+      return;
+    }
+
+    visited.add(u);
+    for (const v of graph.successors(u)) {
+      visit(v);
+    }
+    L.push(u);
+  }
+
+  function assign(u: NodeIndex, root: NodeIndex) {
+    if (!ids[u]) {
+      ids[u] = root;
+      for (const v of graph.predecessors(u)) {
+        assign(v, root);
+      }
+    }
+  }
+}
