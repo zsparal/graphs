@@ -1,5 +1,6 @@
 import { Graph } from "graph";
 import { Dict, NodeIndex } from "graph.interface";
+import { reconstructPath } from "algo/util";
 
 export interface ShortestPathResult {
   predecessor: Dict<string | undefined>;
@@ -24,15 +25,5 @@ export function shortestPathBetween<N, E>(
     return undefined;
   }
 
-  const path: NodeIndex[] = [];
-  while (true) {
-    const next = result.predecessor[to];
-    if (next == null) {
-      break;
-    }
-    path.push(to);
-    to = next;
-  }
-  path.push(to);
-  return path.reverse();
+  return reconstructPath(to, result.predecessor);
 }

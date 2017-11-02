@@ -2,6 +2,7 @@ import { Graph } from "graph";
 import { Dict, NodeIndex } from "graph.interface";
 
 import { ShortestPathResult } from "algo/shortest-path";
+import { createDistanceMap } from "algo/util";
 
 export function bellmanFord<N, E>(
   graph: Graph<N, E>,
@@ -9,11 +10,7 @@ export function bellmanFord<N, E>(
   weightSelector: (edge: E) => number
 ): ShortestPathResult | undefined {
   const predecessor: Dict<string | undefined> = {};
-  const distance: Dict<number> = {};
-
-  for (const node of graph.nodes.keys()) {
-    distance[node] = Infinity;
-  }
+  const distance = createDistanceMap(graph);
 
   distance[start] = 0;
   for (let i = 0; i < graph.nodeCount; i++) {

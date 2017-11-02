@@ -19,7 +19,10 @@ export class Graph<N, E> extends Record<{
   nodes: OrderedMap(),
   edges: OrderedMap()
 }) implements Visitable {
-  static from<N, E>(nodes: Array<[string, N]>, edges?: Array<[string, string, E]>): Graph<N, E> {
+  static from<N, E>(
+    nodes: Array<[NodeIndex, N]>,
+    edges?: Array<[NodeIndex, NodeIndex, E]>
+  ): Graph<N, E> {
     let graph = new Graph<N, E>();
     for (const [node, data] of nodes) {
       graph = graph.addNode(node, data);
