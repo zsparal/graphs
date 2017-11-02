@@ -6,7 +6,7 @@ describe("Graph", () => {
   let graph: Graph<number, number>;
   describe("Basic node operations", () => {
     beforeEach(() => {
-      graph = new Graph();
+      graph = Graph();
     });
 
     it("can add nodes (via addNode)", () => {

@@ -12,7 +12,7 @@ describe("Cycle detection", () => {
   });
 
   it("returns false for empty graphs", () => {
-    expect(isCyclic(new Graph())).toEqual(false);
+    expect(isCyclic(Graph())).toEqual(false);
   });
 
   it("returns false for acyclic graphs", () => {

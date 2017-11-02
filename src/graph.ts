@@ -2,39 +2,52 @@ import { List, OrderedMap, Record } from "immutable";
 
 import { Edge, NodeIndex, Visitable } from "graph.interface";
 
-export class Node<N> extends Record<{
+interface NodeProps<N> {
   value: N;
   incomingEdges: List<NodeIndex>;
   outgoingEdges: List<NodeIndex>;
-}>({
+}
+
+class NodeBase extends Record<NodeProps<any>>({
   value: undefined!,
   incomingEdges: List(),
   outgoingEdges: List()
 }) {}
 
-export class Graph<N, E> extends Record<{
+export type Node<N> = Readonly<NodeProps<N>> & Record<NodeProps<N>>;
+export function Node<N>(values?: Partial<NodeProps<N>>): Node<N> {
+  return new NodeBase(values);
+}
+
+interface GraphProps<N, E> {
   nodes: OrderedMap<NodeIndex, Node<N>>;
   edges: OrderedMap<Edge, E>;
-}>({
+}
+
+interface GraphMethods<N, E> {
+  readonly nodeCount: number;
+  readonly edgeCount: number;
+  sources(): NodeIndex[];
+  sinks(): NodeIndex[];
+  nodeValue(id: NodeIndex): N | undefined;
+  hasNode(id: NodeIndex): boolean;
+  addNode(id: NodeIndex, value: N): Graph<N, E>;
+  updateNode(id: NodeIndex, value: N): Graph<N, E>;
+  removeNode(id: NodeIndex): Graph<N, E>;
+  edgeValue(from: NodeIndex, to: NodeIndex): E | undefined;
+  hasEdge(from: NodeIndex, to: NodeIndex): boolean;
+  addEdge(from: NodeIndex, to: NodeIndex, data: E): Graph<N, E>;
+  updateEdge(from: NodeIndex, to: NodeIndex, data: E): Graph<N, E>;
+  removeEdge(from: NodeIndex, to: NodeIndex): Graph<N, E>;
+  successors(nodeIndex: NodeIndex): List<NodeIndex>;
+  predecessors(nodeIndex: NodeIndex): List<NodeIndex>;
+  neighbors(nodeIndex: NodeIndex): List<NodeIndex>;
+}
+
+class GraphBase<N, E> extends Record<GraphProps<any, any>>({
   nodes: OrderedMap(),
   edges: OrderedMap()
-}) implements Visitable {
-  static from<N, E>(
-    nodes: Array<[NodeIndex, N]>,
-    edges?: Array<[NodeIndex, NodeIndex, E]>
-  ): Graph<N, E> {
-    let graph = new Graph<N, E>();
-    for (const [node, data] of nodes) {
-      graph = graph.addNode(node, data);
-    }
-    if (edges) {
-      for (const [from, to, data] of edges) {
-        graph = graph.addEdge(from, to, data);
-      }
-    }
-    return graph;
-  }
-
+}) implements Visitable, GraphMethods<N, E> {
   get nodeCount() {
     return this.nodes.size;
   }
@@ -63,11 +76,11 @@ export class Graph<N, E> extends Record<{
     if (this.hasNode(id)) {
       throw new Error(`Cannot add duplicate node ${id}`);
     }
-    return this.setIn(["nodes", id], new Node({ value }));
+    return this.setIn(["nodes", id], Node({ value }));
   }
 
   updateNode(id: NodeIndex, value: N): Graph<N, E> {
-    return this.setIn(["nodes", id], new Node({ value }));
+    return this.setIn(["nodes", id], Node({ value }));
   }
 
   removeNode(id: NodeIndex): Graph<N, E> {
@@ -200,5 +213,29 @@ export class Graph<N, E> extends Record<{
     edge: NodeIndex
   ): OrderedMap<NodeIndex, Node<N>> {
     return nodes.updateIn([node, type], (edges: List<NodeIndex>) => edges.filter(e => e !== edge));
+  }
+}
+
+export type Graph<N, E> = Readonly<GraphProps<N, E>> &
+  GraphMethods<N, E> &
+  Record<GraphProps<N, E>>;
+export function Graph<N, E>(values?: Partial<GraphProps<N, E>>): Graph<N, E> {
+  return new GraphBase(values);
+}
+export namespace Graph {
+  export function from<N, E>(
+    nodes: Array<[NodeIndex, N]>,
+    edges?: Array<[NodeIndex, NodeIndex, E]>
+  ): Graph<N, E> {
+    let graph = Graph<N, E>();
+    for (const [node, data] of nodes) {
+      graph = graph.addNode(node, data);
+    }
+    if (edges) {
+      for (const [from, to, data] of edges) {
+        graph = graph.addEdge(from, to, data);
+      }
+    }
+    return graph;
   }
 }
