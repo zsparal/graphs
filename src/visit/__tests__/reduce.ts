@@ -2,6 +2,7 @@ import { Graph } from "graph";
 
 import { reduce, reduce1 } from "visit";
 import { bfs } from "visit/bfs";
+import { Dict } from "graph.interface";
 
 describe("Reduce", () => {
   let graph: Graph<number, number>;
@@ -21,6 +22,13 @@ describe("Reduce", () => {
     expect(reduce(graph, bfs, "A", (values, n) => [...values, n], [] as number[])).toEqual(
       expected
     );
+  });
+
+  it("gets the correct node indices", () => {
+    const expected = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    expect(
+      reduce(graph, bfs, "A", (values, n, ni) => ({ ...values, [ni]: n }), {} as Dict<number>)
+    ).toEqual(expected);
   });
 
   it("produces the correct sum without an initial element", () => {
