@@ -27,21 +27,25 @@ interface GraphProps<N, E> {
 interface GraphMethods<N, E> {
   readonly nodeCount: number;
   readonly edgeCount: number;
+
   sources(): NodeIndex[];
   sinks(): NodeIndex[];
-  nodeValue(id: NodeIndex): N | undefined;
-  hasNode(id: NodeIndex): boolean;
-  addNode(id: NodeIndex, value: N): Graph<N, E>;
-  updateNode(id: NodeIndex, value: N): Graph<N, E>;
-  removeNode(id: NodeIndex): Graph<N, E>;
-  edgeValue(from: NodeIndex, to: NodeIndex): E | undefined;
-  hasEdge(from: NodeIndex, to: NodeIndex): boolean;
-  addEdge(from: NodeIndex, to: NodeIndex, data: E): Graph<N, E>;
-  updateEdge(from: NodeIndex, to: NodeIndex, data: E): Graph<N, E>;
-  removeEdge(from: NodeIndex, to: NodeIndex): Graph<N, E>;
+
   successors(nodeIndex: NodeIndex): List<NodeIndex>;
   predecessors(nodeIndex: NodeIndex): List<NodeIndex>;
   neighbors(nodeIndex: NodeIndex): List<NodeIndex>;
+
+  nodeValue(id: NodeIndex): N | undefined;
+  hasNode(id: NodeIndex): boolean;
+  addNode(id: NodeIndex, value: N): this;
+  updateNode(id: NodeIndex, value: N): this;
+  removeNode(id: NodeIndex): this;
+
+  edgeValue(from: NodeIndex, to: NodeIndex): E | undefined;
+  hasEdge(from: NodeIndex, to: NodeIndex): boolean;
+  addEdge(from: NodeIndex, to: NodeIndex, data: E): this;
+  updateEdge(from: NodeIndex, to: NodeIndex, data: E): this;
+  removeEdge(from: NodeIndex, to: NodeIndex): this;
 }
 
 class UnsafeGraph<N, E> extends Record<GraphProps<any, any>>({
@@ -62,94 +66,6 @@ class UnsafeGraph<N, E> extends Record<GraphProps<any, any>>({
 
   sinks(): NodeIndex[] {
     return Array.from(this.nodes.filter(node => node.outgoingEdges.size === 0).keys());
-  }
-
-  nodeValue(id: NodeIndex): N | undefined {
-    return this.nodes.getIn([id, "value"]);
-  }
-
-  hasNode(id: NodeIndex): boolean {
-    return this.nodes.has(id);
-  }
-
-  addNode(id: NodeIndex, value: N): Graph<N, E> {
-    if (this.hasNode(id)) {
-      throw new Error(`Cannot add duplicate node ${id}`);
-    }
-    return this.setIn(["nodes", id], Node({ value }));
-  }
-
-  updateNode(id: NodeIndex, value: N): Graph<N, E> {
-    return this.setIn(["nodes", id], Node({ value }));
-  }
-
-  removeNode(id: NodeIndex): Graph<N, E> {
-    const node = this.nodes.get(id);
-    if (!node) {
-      return this;
-    }
-
-    return this.removeIn(["nodes", id]).removeRelatedEdges(id, node);
-  }
-
-  edgeValue(from: NodeIndex, to: NodeIndex): E | undefined {
-    return this.edges.get(new Edge(from, to));
-  }
-
-  hasEdge(from: NodeIndex, to: NodeIndex): boolean {
-    return this.edges.has(new Edge(from, to));
-  }
-
-  addEdge(from: NodeIndex, to: NodeIndex, data: E): Graph<N, E> {
-    const fromNode = this.nodes.get(from);
-    const toNode = this.nodes.get(to);
-    if (!fromNode || !toNode) {
-      throw new Error(`Cannot add edge between ${from} and ${to}. One of the nodes does not exist`);
-    }
-
-    const edge = new Edge(from, to);
-    if (this.edges.has(edge)) {
-      throw new Error(`Cannot add duplicate edge between ${from} and ${to}`);
-    }
-
-    return this.withMutations(graph => {
-      const nodes = this.addNodeEdge(graph.nodes, from, to);
-      return graph.set("nodes", nodes).set("edges", graph.edges.set(edge, data));
-    });
-  }
-
-  updateEdge(from: NodeIndex, to: NodeIndex, data: E): Graph<N, E> {
-    const fromNode = this.nodes.get(from);
-    const toNode = this.nodes.get(to);
-    if (!fromNode || !toNode) {
-      throw new Error(`Cannot add edge between ${from} and ${to}. One of the nodes does not exist`);
-    }
-
-    const edge = new Edge(from, to);
-    return this.withMutations(graph => {
-      if (!this.edges.has(edge)) {
-        graph = graph.set("nodes", this.addNodeEdge(graph.nodes, from, to));
-      }
-      return graph.set("edges", graph.edges.set(edge, data));
-    });
-  }
-
-  removeEdge(from: NodeIndex, to: NodeIndex): Graph<N, E> {
-    const edge = new Edge(from, to);
-    if (!this.edges.has(edge)) {
-      return this;
-    }
-
-    return this.withMutations(graph => {
-      graph = graph.set(
-        "nodes",
-        graph.nodes.withMutations(nodes => {
-          nodes = this.removeNodeEdge(nodes, from, "outgoingEdges", to);
-          return this.removeNodeEdge(nodes, to, "incomingEdges", from);
-        })
-      );
-      return graph.set("edges", graph.edges.remove(edge));
-    });
   }
 
   successors(nodeIndex: NodeIndex): List<NodeIndex> {
@@ -176,7 +92,95 @@ class UnsafeGraph<N, E> extends Record<GraphProps<any, any>>({
     return node.incomingEdges.concat(node.outgoingEdges).toList();
   }
 
-  private removeRelatedEdges(nodeId: NodeIndex, node: Node<N>): Graph<N, E> {
+  nodeValue(id: NodeIndex): N | undefined {
+    return this.nodes.getIn([id, "value"]);
+  }
+
+  hasNode(id: NodeIndex): boolean {
+    return this.nodes.has(id);
+  }
+
+  addNode(id: NodeIndex, value: N): this {
+    if (this.hasNode(id)) {
+      throw new Error(`Cannot add duplicate node ${id}`);
+    }
+    return this.setIn(["nodes", id], Node({ value }));
+  }
+
+  updateNode(id: NodeIndex, value: N): this {
+    return this.setIn(["nodes", id], Node({ value }));
+  }
+
+  removeNode(id: NodeIndex): this {
+    const node = this.nodes.get(id);
+    if (!node) {
+      return this;
+    }
+
+    return this.removeIn(["nodes", id]).removeRelatedEdges(id, node);
+  }
+
+  edgeValue(from: NodeIndex, to: NodeIndex): E | undefined {
+    return this.edges.get(new Edge(from, to));
+  }
+
+  hasEdge(from: NodeIndex, to: NodeIndex): boolean {
+    return this.edges.has(new Edge(from, to));
+  }
+
+  addEdge(from: NodeIndex, to: NodeIndex, data: E): this {
+    const fromNode = this.nodes.get(from);
+    const toNode = this.nodes.get(to);
+    if (!fromNode || !toNode) {
+      throw new Error(`Cannot add edge between ${from} and ${to}. One of the nodes does not exist`);
+    }
+
+    const edge = new Edge(from, to);
+    if (this.edges.has(edge)) {
+      throw new Error(`Cannot add duplicate edge between ${from} and ${to}`);
+    }
+
+    return this.withMutations(graph => {
+      const nodes = this.addNodeEdge(graph.nodes, from, to);
+      return graph.set("nodes", nodes).set("edges", graph.edges.set(edge, data));
+    });
+  }
+
+  updateEdge(from: NodeIndex, to: NodeIndex, data: E): this {
+    const fromNode = this.nodes.get(from);
+    const toNode = this.nodes.get(to);
+    if (!fromNode || !toNode) {
+      throw new Error(`Cannot add edge between ${from} and ${to}. One of the nodes does not exist`);
+    }
+
+    const edge = new Edge(from, to);
+    return this.withMutations(graph => {
+      if (!this.edges.has(edge)) {
+        graph = graph.set("nodes", this.addNodeEdge(graph.nodes, from, to));
+      }
+      return graph.set("edges", graph.edges.set(edge, data));
+    });
+  }
+
+  removeEdge(from: NodeIndex, to: NodeIndex): this {
+    const edge = new Edge(from, to);
+    if (!this.edges.has(edge)) {
+      return this;
+    }
+
+    return this.withMutations(graph => {
+      graph = graph.set(
+        "nodes",
+        graph.nodes.withMutations(nodes => {
+          nodes = this.removeNodeEdge(nodes, from, "outgoingEdges", to);
+          return this.removeNodeEdge(nodes, to, "incomingEdges", from);
+        })
+      );
+      return graph.set("edges", graph.edges.remove(edge));
+    });
+  }
+
+  private removeRelatedEdges(nodeId: NodeIndex, node: Node<N>): this {
     const nodes = this.nodes.withMutations(ns => {
       for (const edge of node.incomingEdges) {
         ns = this.removeNodeEdge(ns, edge, "outgoingEdges", nodeId);
