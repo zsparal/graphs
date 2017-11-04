@@ -23,4 +23,8 @@ export class Edge implements ValueObject {
     result = result * 37 + hash(this.target);
     return result;
   }
+
+  toString(): string {
+    return `Node[${this.source}, ${this.target}]`;
+  }
 }

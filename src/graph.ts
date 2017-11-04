@@ -8,15 +8,15 @@ interface NodeProps<N> {
   outgoingEdges: List<NodeIndex>;
 }
 
-class NodeBase extends Record<NodeProps<any>>({
+class UnsafeNode extends Record<NodeProps<any>>({
   value: undefined!,
   incomingEdges: List(),
   outgoingEdges: List()
 }) {}
 
-export type Node<N> = Readonly<NodeProps<N>> & Record<NodeProps<N>>;
+export type Node<N> = Readonly<NodeProps<N>>;
 export function Node<N>(values?: Partial<NodeProps<N>>): Node<N> {
-  return new NodeBase(values);
+  return new UnsafeNode(values);
 }
 
 interface GraphProps<N, E> {
@@ -44,7 +44,7 @@ interface GraphMethods<N, E> {
   neighbors(nodeIndex: NodeIndex): List<NodeIndex>;
 }
 
-class GraphBase<N, E> extends Record<GraphProps<any, any>>({
+class UnsafeGraph<N, E> extends Record<GraphProps<any, any>>({
   nodes: OrderedMap(),
   edges: OrderedMap()
 }) implements Visitable, GraphMethods<N, E> {
@@ -216,12 +216,11 @@ class GraphBase<N, E> extends Record<GraphProps<any, any>>({
   }
 }
 
-export type Graph<N, E> = Readonly<GraphProps<N, E>> &
-  GraphMethods<N, E> &
-  Record<GraphProps<N, E>>;
+export type Graph<N, E> = Readonly<GraphProps<N, E>> & GraphMethods<N, E>;
 export function Graph<N, E>(values?: Partial<GraphProps<N, E>>): Graph<N, E> {
-  return new GraphBase(values);
+  return new UnsafeGraph(values);
 }
+
 export namespace Graph {
   export function from<N, E>(
     nodes: Array<[NodeIndex, N]>,
